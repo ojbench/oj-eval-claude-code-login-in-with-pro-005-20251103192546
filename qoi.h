@@ -76,23 +76,23 @@ bool QoiEncode(uint32_t width, uint32_t height, uint8_t channels, uint8_t colors
         b = QoiReadU8();
         if (channels == 4) a = QoiReadU8();
 
+        // Calculate hash index for current pixel
+        int index = QoiColorHash(r, g, b, a);
+
         // Check if current pixel matches previous pixel (for RUN encoding)
         if (r == pre_r && g == pre_g && b == pre_b && a == pre_a) {
             run++;
             // If run reaches maximum (62) or last pixel, encode it
             if (run == 62 || i == px_num - 1) {
-                QoiWriteU8(QOI_OP_RUN_TAG | (run - 1));
+                QoiWriteU8(QOI_OP_RUN_TAG | ((run - 1) & 0x3f));
                 run = 0;
             }
         } else {
             // Encode pending run if any
             if (run > 0) {
-                QoiWriteU8(QOI_OP_RUN_TAG | (run - 1));
+                QoiWriteU8(QOI_OP_RUN_TAG | ((run - 1) & 0x3f));
                 run = 0;
             }
-
-            // Calculate hash index for current pixel
-            int index = QoiColorHash(r, g, b, a);
 
             // Check if pixel exists in history (INDEX)
             if (history[index][0] == r && history[index][1] == g &&
@@ -140,13 +140,13 @@ bool QoiEncode(uint32_t width, uint32_t height, uint8_t channels, uint8_t colors
                     }
                 }
             }
-
-            // Update history for every new pixel (not during RUN)
-            history[index][0] = r;
-            history[index][1] = g;
-            history[index][2] = b;
-            history[index][3] = a;
         }
+
+        // Update history for every pixel
+        history[index][0] = r;
+        history[index][1] = g;
+        history[index][2] = b;
+        history[index][3] = a;
 
         pre_r = r;
         pre_g = g;

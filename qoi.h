@@ -139,13 +139,13 @@ bool QoiEncode(uint32_t width, uint32_t height, uint8_t channels, uint8_t colors
                         QoiWriteU8(b);
                     }
                 }
-
-                // Update history
-                history[index][0] = r;
-                history[index][1] = g;
-                history[index][2] = b;
-                history[index][3] = a;
             }
+
+            // Update history for every new pixel (not during RUN)
+            history[index][0] = r;
+            history[index][1] = g;
+            history[index][2] = b;
+            history[index][3] = a;
         }
 
         pre_r = r;
